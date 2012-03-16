@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+	<script src="http://code.jquery.com/jquery-1.7.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<form id="nickname">
+		<label>NickName : </label><input type="text" id="nick" />
+		<button id="join">Join</button>
+        <label>Message : </label><input type="text" id="msgArea" />
+    	<button id="send">send</button>
+	</form>
+	<div id="nicklist"><ul></ul></div>
+	<div id="log"></div>
+	<script>
+		(function($){
+			var socket = io.connect('http://mongolab.hjkim.c9.io/');            
+		
+			socket.on('log', function(logdata) {
+				$("#log").append("<p>"+logdata+"</p>");
+			});
+
+			socket.on('joinok', function(nick){
+				$("ul", "#nicklist").append("<li>"+nick+"</li>");
+			});
+
+			socket.on('nicknames', function(data) {
+				var nicklist = $("ul", "#nicklist").empty();
+
+				for (var i in data) {
+					$("ul", "#nicklist").append("<li>"+data[i]+"</li>");
+				}
+			});
+
+			$("#join").on({
+				click: function() {
+					var nick = $("#nick");
+					if (nick.val() == "") {
+						alert('NickName 을 입력해주세요.');
+						nick.focus();
+						return false;
+					} else {
+						socket.emit('join', nick.val());
+						nick.val("");
+					}
+
+					return false;
+				}
+			});
+            
+            $("#send").on({
+				click: function() {
+					var msgArea = $("#msgArea");
+					if (msgArea.val() == "") {
+						alert('Message 을 입력해주세요.');
+						msgArea.focus();
+						return false;
+					} else {
+						socket.emit('sendmsg', msgArea.val());
+						msgArea.val("");
+					}
+
+					return false;
+				}
+			});
+		})(jQuery);
+	</script>
+</body>
+</html>
